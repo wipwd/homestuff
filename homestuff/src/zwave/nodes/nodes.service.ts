@@ -12,8 +12,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { Injectable } from '@nestjs/common';
-import ZWave, { NodeInfo } from "openzwave-shared";
+import { Injectable, Logger } from '@nestjs/common';
+import ZWave, {
+  NodeInfo,
+  Notification
+} from "openzwave-shared";
 import { ZwaveService } from '../zwave.service';
 
 
@@ -31,12 +34,14 @@ export interface ZWNode {
   available: boolean;
   ready: boolean;
   state: ZWNodeStateEnum;
+  removed: boolean;
 }
 
 
 @Injectable()
 export class NodesService {
 
+  private readonly logger: Logger = new Logger(NodesService.name);
   private nodes: {[id: number]: ZWNode} = {};
 
   public constructor(private zwaveService: ZwaveService) {
@@ -55,15 +60,93 @@ export class NodesService {
     driver.on("notification", this.onNotification.bind(this));
   }
 
-  private onAdded(id: number): void { }
-  private onRemoved(id: number): void { }
-  private onAvailable(id: number, info: NodeInfo): void { }
-  private onReset(id: number): void { }
-  private onPollingEnabled(id: number): void { }
-  private onPollingDisabled(id: number): void { }
-  private onNaming(id: number, info: NodeInfo): void { }
-  private onReady(id: number, info: NodeInfo): void { }
-  private onEvent(id: number, data: any) { }
-  private onNotification(id: number, notification: Notification, str: string) {}
+  private onAdded(id: number): void {
+    this.logger.debug(`add node id = ${id}`);
+    let info: NodeInfo|undefined = undefined;
+    if (id in this.nodes) {
+      info = this.nodes[id].info;
+    }
+    this.nodes[id] = {
+      id: id,
+      info: info,
+      available: false,
+      ready: false,
+      state: ZWNodeStateEnum.none,
+      removed: false
+    };
+  }
+
+  private onRemoved(id: number): void {
+    this.logger.debug(`remove node id = ${id}`);
+    if (!(id in this.nodes)) {
+      return;
+    }
+    const node = this.nodes[id];
+    node.available = false;
+    node.ready = false;
+    node.state = ZWNodeStateEnum.none;
+    node.removed = true;
+  }
+
+  private onAvailable(id: number, info: NodeInfo): void {
+    if (!(id in this.nodes)) {
+      this.onAdded(id);
+    }
+    const node = this.nodes[id];
+    node.info = info;
+    node.available = true;
+  }
+
+  private onReset(id: number): void {
+    this.logger.error(`on reset (node: ${id}) not implemented`);
+  }
+
+  private onPollingEnabled(id: number): void {
+    this.logger.error(`on polling enabled (node: ${id}) not implemented`);
+  }
+
+  private onPollingDisabled(id: number): void {
+    this.logger.error(`on polling disabled (node: ${id}) not implemented`);
+  }
+
+  private onNaming(id: number, info: NodeInfo): void {
+    if (!(id in this.nodes)) {
+      this.onAdded(id);
+    }
+    this.nodes[id].info = info;
+  }
+
+  private onReady(id: number, info: NodeInfo): void {
+    if (!(id in this.nodes)) {
+      this.onAdded(id);
+    }
+    this.nodes[id].info = info;
+    this.nodes[id].ready = true;
+  }
+
+  private onEvent(id: number, data: any) {
+    this.logger.error(`on event (node: ${id}) not implemented`);
+  }
+
+  private onNotification(id: number, notification: Notification, str: string) {
+    if (!(id in this.nodes)) {
+      this.onAdded(id);
+    }
+    const node = this.nodes[id];
+    switch (notification) {
+      case Notification.NodeAlive:
+        node.state = ZWNodeStateEnum.alive;
+        break;
+      case Notification.NodeAwake:
+        node.state = ZWNodeStateEnum.awake;
+        break;
+      case Notification.NodeDead:
+        node.state = ZWNodeStateEnum.dead;
+        break;
+      case Notification.NodeSleep:
+        node.state = ZWNodeStateEnum.sleep;
+        break;
+    }
+  }
 
 }

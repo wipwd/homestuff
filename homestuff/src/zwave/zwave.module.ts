@@ -14,8 +14,9 @@
  */
 import { Module } from '@nestjs/common';
 import { ZwaveService } from './zwave.service';
+import { NodesService } from './nodes/nodes.service';
 
 @Module({
-  providers: [ZwaveService]
+  providers: [ZwaveService, NodesService]
 })
 export class ZwaveModule {}
