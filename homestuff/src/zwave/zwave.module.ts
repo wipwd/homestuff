@@ -19,8 +19,10 @@ import { CtrlService } from './ctrl/ctrl.service';
 import { CtrlController } from './ctrl/ctrl.controller';
 import { ValuesService } from './values/values.service';
 import { ValuesController } from './values/values.controller';
+import { DBModule } from '../db/db.module';
 
 @Module({
+  imports: [DBModule],
   providers: [ZwaveService, NodesService, CtrlService, ValuesService],
   controllers: [CtrlController, ValuesController]
 })

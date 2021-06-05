@@ -12,8 +12,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
+import { Point } from '@influxdata/influxdb-client';
 import { Injectable, Logger } from '@nestjs/common';
 import { Value } from 'openzwave-shared';
+import { InfluxDBService } from 'src/db/influxdb/influxdb.service';
 import { ZwaveService } from '../zwave.service';
 
 
@@ -35,7 +37,10 @@ export class ValuesService {
 
   private readonly logger: Logger = new Logger(ValuesService.name);
 
-  public constructor(private zwaveService: ZwaveService) {
+  public constructor(
+    private zwaveService: ZwaveService,
+    private influxService: InfluxDBService
+  ) {
 
     let driver = this.zwaveService.driver;
     driver.on("value added", this.updateValue.bind(this));
@@ -74,10 +79,41 @@ export class ValuesService {
       const diff = valueslst.length - this.CACHEMAX;
       this.values_by_id[valueid] = valueslst.splice(0, diff);
     }
+
+    this.maybeStoreValue(id, cls, value);
   }
 
   private genValueID(v: Value): string {
     return `${v.node_id}-${v.class_id}-${v.instance}-${v.index}`;
+  }
+
+  private maybeStoreValue(id: number, cls: number, value: Value): void {
+
+    if (cls === 0x32) {
+      this.storeMeterValue(id, cls, value);
+    }
+  }
+
+  private storeMeterValue(id: number, cls: number, value: Value): void {
+    if (cls !== 0x32) {
+      return;
+    }
+
+    const write = this.influxService.getWrite();
+    if (!write) {
+      return;
+    }
+    write.useDefaultTags({node: `node#${id}`});
+    const point = new Point(value.units);
+
+    if (value.type === "decimal") {
+      point.floatField("value", value.value);
+    } else if (value.type === "int" || value.type === "short") {
+      point.intField("value", value.value);
+    }
+
+    write.writePoint(point)
+    write.close();
   }
 
   public getLatestValuesByNode(id: number): ValueEntry[] {
