@@ -89,6 +89,9 @@ export class NodesService {
   }
 
   private onAvailable(id: number, info: NodeInfo): void {
+    const r = this.getNodeVendorModel(info);
+    this.logger.debug(`available node id = ${id}, ` +
+                      `${r.vendor} ${r.model} `);
     if (!(id in this.nodes)) {
       this.onAdded(id);
     }
@@ -117,6 +120,9 @@ export class NodesService {
   }
 
   private onReady(id: number, info: NodeInfo): void {
+    const r = this.getNodeVendorModel(info);
+    this.logger.debug(`ready node id = ${id}, ` +
+                      `${r.vendor} ${r.model} ${info.name}`);
     if (!(id in this.nodes)) {
       this.onAdded(id);
     }
@@ -147,6 +153,24 @@ export class NodesService {
         node.state = ZWNodeStateEnum.sleep;
         break;
     }
+  }
+
+  private getNodeVendorModel(info: NodeInfo): {vendor: string, model: string} {
+    let manufacturer = "";
+    let product = "";
+    if (parseInt(info.manufacturerid, 16) > 0) {
+      manufacturer = info.manufacturer;
+    }
+    if (parseInt(info.productid, 16) > 0) {
+      product = info.product;
+    }
+    return {vendor: manufacturer, model: product};
+  }
+
+  public getNodeIDs(): number[] {
+    const ids: number[] = [];
+    Object.keys(this.nodes).forEach((k: string) => ids.push(+k));
+    return ids;
   }
 
 }
