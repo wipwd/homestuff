@@ -12,13 +12,21 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { Module } from '@nestjs/common';
-import { ZwaveModule } from './zwave/zwave.module';
-import { DBModule } from './db/db.module';
+import { Test, TestingModule } from '@nestjs/testing';
+import { InfluxDBService } from './influxdb.service';
 
-@Module({
-  imports: [ZwaveModule, DBModule],
-  controllers: [],
-  providers: [],
-})
-export class AppModule {}
+describe('InfluxdbService', () => {
+  let service: InfluxDBService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [InfluxDBService],
+    }).compile();
+
+    service = module.get<InfluxDBService>(InfluxDBService);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+});

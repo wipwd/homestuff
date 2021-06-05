@@ -13,12 +13,10 @@
  * GNU Affero General Public License for more details.
  */
 import { Module } from '@nestjs/common';
-import { ZwaveModule } from './zwave/zwave.module';
-import { DBModule } from './db/db.module';
+import { InfluxDBService } from './influxdb/influxdb.service';
 
 @Module({
-  imports: [ZwaveModule, DBModule],
-  controllers: [],
-  providers: [],
+  providers: [InfluxDBService],
+  exports: [InfluxDBService]
 })
-export class AppModule {}
+export class DBModule {}
