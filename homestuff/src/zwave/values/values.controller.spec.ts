@@ -12,16 +12,21 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { Module } from '@nestjs/common';
-import { ZwaveService } from './zwave.service';
-import { NodesService } from './nodes/nodes.service';
-import { CtrlService } from './ctrl/ctrl.service';
-import { CtrlController } from './ctrl/ctrl.controller';
-import { ValuesService } from './values/values.service';
-import { ValuesController } from './values/values.controller';
+import { Test, TestingModule } from '@nestjs/testing';
+import { ValuesController } from './values.controller';
 
-@Module({
-  providers: [ZwaveService, NodesService, CtrlService, ValuesService],
-  controllers: [CtrlController, ValuesController]
-})
-export class ZwaveModule {}
+describe('ValuesController', () => {
+  let controller: ValuesController;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [ValuesController],
+    }).compile();
+
+    controller = module.get<ValuesController>(ValuesController);
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+});
