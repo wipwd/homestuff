@@ -15,9 +15,17 @@
 import { Module } from '@nestjs/common';
 import { ZwaveModule } from './zwave/zwave.module';
 import { DBModule } from './db/db.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
-  imports: [ZwaveModule, DBModule],
+  imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, "..", "..", "dashboard", "dist"),
+    }),
+    ZwaveModule,
+    DBModule
+  ],
   controllers: [],
   providers: [],
 })
