@@ -12,14 +12,21 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { Module } from '@nestjs/common';
-import { ZwaveService } from './zwave.service';
-import { NodesService } from './nodes/nodes.service';
-import { CtrlService } from './ctrl/ctrl.service';
-import { CtrlController } from './ctrl/ctrl.controller';
+import { Controller, Get, Post } from '@nestjs/common';
+import { CtrlService, NetworkMesh } from './ctrl.service';
 
-@Module({
-  providers: [ZwaveService, NodesService, CtrlService],
-  controllers: [CtrlController]
-})
-export class ZwaveModule {}
+@Controller('ctrl')
+export class CtrlController {
+
+  public constructor(private ctrlService: CtrlService) { }
+
+  @Post("heal")
+  public healNetwork(): boolean {
+    return this.ctrlService.healNetwork();
+  }
+
+  @Get("mesh")
+  public getNetworkMesh(): NetworkMesh {
+    return this.ctrlService.getNetworkMesh();
+  }
+}
