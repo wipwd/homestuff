@@ -1,0 +1,6 @@
+{
+  "/api": {
+    "target": "http://alice.front.lab:31337",
+    "secure": false
+  }
+}
