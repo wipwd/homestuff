@@ -1,0 +1,60 @@
+<!--
+  home stuff
+  Copyright (C) 2021  Joao Eduardo Luis <joao@wipwd.dev>
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as
+  published by the Free Software Foundation, either version 3 of the
+  License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Affero General Public License for more details.
+-->
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav #drawer class="sidenav" fixedInViewport
+      [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+      [mode]="(isHandset$ | async) ? 'over' : 'side'"
+      [opened]="(isHandset$ | async) === false">
+    <mat-toolbar>Menu</mat-toolbar>
+    <mat-nav-list fxLayout="column">
+      <mat-list-item>
+        <div fxLayout="column"
+             fxLayoutAlign="start center"
+             style="width: 63px">
+          <mat-icon svgIcon="mdi:tablet-dashboard"
+                   style="transform: scale(1.5);">
+          </mat-icon>
+          <span style="font-size: small;">Dashboard</span>
+        </div>
+      </mat-list-item>
+      <div style="height: 20px"></div> <!-- spacer -->
+      <mat-list-item>
+        <div fxLayout="column"
+             fxLayoutAlign="start center"
+             style="width: 63px">
+          <mat-icon svgIcon="mdi:access-point"
+                    style="transform: scale(1.5);">
+          </mat-icon>
+          <span style="font-size: small;">Network</span>
+        </div>
+      </mat-list-item>
+
+    </mat-nav-list>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <mat-toolbar color="primary">
+      <button
+        type="button"
+        aria-label="Toggle sidenav"
+        mat-icon-button
+        (click)="drawer.toggle()"
+        *ngIf="isHandset$ | async">
+        <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
+      </button>
+      <span>dashboard</span>
+    </mat-toolbar>
+    <!-- Add Content Here -->
+  </mat-sidenav-content>
+</mat-sidenav-container>

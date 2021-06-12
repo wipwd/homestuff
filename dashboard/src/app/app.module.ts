@@ -14,12 +14,15 @@
  */
 import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
+import { FlexLayoutModule } from '@angular/flex-layout';
 import { MatIconModule, MatIconRegistry } from "@angular/material/icon";
 import { BrowserModule, DomSanitizer } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
+import { UiModule } from './ui/ui.module';
+
 
 @NgModule({
   declarations: [
@@ -31,6 +34,8 @@ import { AppRoutingModule } from './app-routing.module';
     BrowserAnimationsModule,
     MatIconModule,
     HttpClientModule,
+    FlexLayoutModule,
+    UiModule
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -12,24 +12,21 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
 
-import { DashboardComponent } from './ui/dashboard/dashboard.component';
+.sidenav-container {
+  height: 100%;
+}
 
-const routes: Routes = [
-  { path: "", component: DashboardComponent }
-];
+.sidenav {
+  width: 100px;
+}
 
-@NgModule({
-  imports: [
-    RouterModule.forRoot(
-      routes,
-      {
-        useHash: true
-      }
-    )
-  ],
-  exports: [RouterModule]
-})
-export class AppRoutingModule { }
+.sidenav .mat-toolbar {
+  background: inherit;
+}
+
+.mat-toolbar.mat-primary {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}

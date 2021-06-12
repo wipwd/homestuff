@@ -12,24 +12,24 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { Component } from '@angular/core';
+import { Observable } from 'rxjs';
+import { map, shareReplay } from 'rxjs/operators';
 
-import { DashboardComponent } from './ui/dashboard/dashboard.component';
-
-const routes: Routes = [
-  { path: "", component: DashboardComponent }
-];
-
-@NgModule({
-  imports: [
-    RouterModule.forRoot(
-      routes,
-      {
-        useHash: true
-      }
-    )
-  ],
-  exports: [RouterModule]
+@Component({
+  selector: 'hs-dashboard',
+  templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.scss']
 })
-export class AppRoutingModule { }
+export class DashboardComponent {
+
+  isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
+    .pipe(
+      map(result => result.matches),
+      shareReplay()
+    );
+
+  constructor(private breakpointObserver: BreakpointObserver) {}
+
+}
