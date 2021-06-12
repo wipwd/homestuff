@@ -12,10 +12,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { Test, TestingModule } from '@nestjs/testing';
-import { InfluxDBService } from './influxdb.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { InfluxDBService } from "./influxdb.service";
 
-describe('InfluxdbService', () => {
+describe("InfluxdbService", () => {
   let service: InfluxDBService;
 
   beforeEach(async () => {
@@ -26,7 +26,7 @@ describe('InfluxdbService', () => {
     service = module.get<InfluxDBService>(InfluxDBService);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(service).toBeDefined();
   });
 });

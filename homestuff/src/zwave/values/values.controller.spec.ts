@@ -12,10 +12,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { Test, TestingModule } from '@nestjs/testing';
-import { ValuesController } from './values.controller';
+import { Test, TestingModule } from "@nestjs/testing";
+import { ValuesController } from "./values.controller";
 
-describe('ValuesController', () => {
+describe("ValuesController", () => {
   let controller: ValuesController;
 
   beforeEach(async () => {
@@ -26,7 +26,7 @@ describe('ValuesController', () => {
     controller = module.get<ValuesController>(ValuesController);
   });
 
-  it('should be defined', () => {
+  it("should be defined", () => {
     expect(controller).toBeDefined();
   });
 });

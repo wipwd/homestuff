@@ -12,11 +12,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { Module } from '@nestjs/common';
-import { InfluxDBService } from './influxdb/influxdb.service';
+import { Module } from "@nestjs/common";
+import { InfluxDBService } from "./influxdb/influxdb.service";
 
 @Module({
   providers: [InfluxDBService],
-  exports: [InfluxDBService]
+  exports: [InfluxDBService],
 })
 export class DBModule {}

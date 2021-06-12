@@ -12,14 +12,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from "@nestjs/common";
 import { InfluxDB, WriteApi } from "@influxdata/influxdb-client";
 import fs from "fs";
 import os from "os";
 
 @Injectable()
 export class InfluxDBService {
-
   private readonly logger: Logger = new Logger(InfluxDBService.name);
   private readonly org: string = "homestuff";
   private readonly bucket: string = "homestuff";
@@ -27,52 +26,51 @@ export class InfluxDBService {
   private client?: InfluxDB = undefined;
 
   public constructor() {
-
     this.token = this.getToken();
     if (!this.token) {
       this.logger.error("influxdb not started");
       return;
     }
 
-    this.logger.debug(`using token '${this.token}`);
+    this.logger.debug(`using token "${this.token}`);
 
     this.client = new InfluxDB({
       url: "http://127.0.0.1:8086",
-      token: this.token
+      token: this.token,
     });
   }
 
-  private getToken(): string|undefined {
+  private getToken(): string | undefined {
     const tokenpath: string = `${os.homedir()}/.homestuff/influxdb.token`;
     if (!fs.existsSync(tokenpath)) {
-      this.logger.error(`influxdb token not found at '${tokenpath}'`);
+      this.logger.error(`influxdb token not found at "${tokenpath}"`);
       return undefined;
     }
 
-    const tokenstr: string = fs.readFileSync(tokenpath, {encoding: "utf-8"});
+    const tokenstr: string = fs.readFileSync(tokenpath, { encoding: "utf-8" });
     if (tokenstr === "") {
-      this.logger.error(`influxdb token empty at '${tokenpath}`);
+      this.logger.error(`influxdb token empty at "${tokenpath}`);
       return undefined;
     }
 
-    let token: string|undefined = undefined;
+    let token: string | undefined = undefined;
     tokenstr.split("\n").forEach((line: string) => {
       if (line !== "") {
         token = line;
       }
     });
     if (token === "") {
-      this.logger.error(`malformed influxdb token file at '${tokenpath}`);
+      this.logger.error(`malformed influxdb token file at "${tokenpath}`);
       return undefined;
     }
     return token;
   }
 
   public isStarted(): boolean {
-    return (!!this.client);
+    return !!this.client;
   }
 
-  public getWrite(): WriteApi|undefined {
+  public getWrite(): WriteApi | undefined {
     if (!this.client) {
       return undefined;
     }

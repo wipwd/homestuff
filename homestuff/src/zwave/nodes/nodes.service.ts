@@ -12,20 +12,16 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { Injectable, Logger } from '@nestjs/common';
-import ZWave, {
-  NodeInfo,
-  Notification
-} from "openzwave-shared";
-import { ZwaveService } from '../zwave.service';
-
+import { Injectable, Logger } from "@nestjs/common";
+import ZWave, { NodeInfo, Notification } from "openzwave-shared";
+import { ZwaveService } from "../zwave.service";
 
 export enum ZWNodeStateEnum {
   none = 0,
   alive = 1,
   awake = 2,
   dead = 3,
-  sleep = 4
+  sleep = 4,
 }
 
 export interface ZWNode {
@@ -37,15 +33,12 @@ export interface ZWNode {
   removed: boolean;
 }
 
-
 @Injectable()
 export class NodesService {
-
   private readonly logger: Logger = new Logger(NodesService.name);
-  private nodes: {[id: number]: ZWNode} = {};
+  private nodes: { [id: number]: ZWNode } = {};
 
   public constructor(private zwaveService: ZwaveService) {
-
     const driver: ZWave = this.zwaveService.driver;
 
     driver.on("node added", this.onAdded.bind(this));
@@ -62,7 +55,7 @@ export class NodesService {
 
   private onAdded(id: number): void {
     this.logger.debug(`add node id = ${id}`);
-    let info: NodeInfo|undefined = undefined;
+    let info: NodeInfo | undefined = undefined;
     if (id in this.nodes) {
       info = this.nodes[id].info;
     }
@@ -72,7 +65,7 @@ export class NodesService {
       available: false,
       ready: false,
       state: ZWNodeStateEnum.none,
-      removed: false
+      removed: false,
     };
   }
 
@@ -90,8 +83,7 @@ export class NodesService {
 
   private onAvailable(id: number, info: NodeInfo): void {
     const r = this.getNodeVendorModel(info);
-    this.logger.debug(`available node id = ${id}, ` +
-                      `${r.vendor} ${r.model} `);
+    this.logger.debug(`available node id = ${id}, ${r.vendor} ${r.model}`);
     if (!(id in this.nodes)) {
       this.onAdded(id);
     }
@@ -121,8 +113,9 @@ export class NodesService {
 
   private onReady(id: number, info: NodeInfo): void {
     const r = this.getNodeVendorModel(info);
-    this.logger.debug(`ready node id = ${id}, ` +
-                      `${r.vendor} ${r.model} ${info.name}`);
+    this.logger.debug(
+      `ready node id = ${id}, ${r.vendor} ${r.model} ${info.name}`,
+    );
     if (!(id in this.nodes)) {
       this.onAdded(id);
     }
@@ -155,7 +148,10 @@ export class NodesService {
     }
   }
 
-  private getNodeVendorModel(info: NodeInfo): {vendor: string, model: string} {
+  private getNodeVendorModel(info: NodeInfo): {
+    vendor: string;
+    model: string;
+  } {
     let manufacturer = "";
     let product = "";
     if (parseInt(info.manufacturerid, 16) > 0) {
@@ -164,7 +160,7 @@ export class NodesService {
     if (parseInt(info.productid, 16) > 0) {
       product = info.product;
     }
-    return {vendor: manufacturer, model: product};
+    return { vendor: manufacturer, model: product };
   }
 
   public getNodeIDs(): number[] {

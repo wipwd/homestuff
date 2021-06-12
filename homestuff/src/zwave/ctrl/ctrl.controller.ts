@@ -12,13 +12,12 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { Controller, Get, Post } from '@nestjs/common';
-import { CtrlService, NetworkMesh } from './ctrl.service';
+import { Controller, Get, Post } from "@nestjs/common";
+import { CtrlService, NetworkMesh } from "./ctrl.service";
 
-@Controller('ctrl')
+@Controller("ctrl")
 export class CtrlController {
-
-  public constructor(private ctrlService: CtrlService) { }
+  public constructor(private ctrlService: CtrlService) {}
 
   @Post("heal")
   public healNetwork(): boolean {

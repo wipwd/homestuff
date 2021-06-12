@@ -12,14 +12,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from "@nestjs/common";
 import ZWave from "openzwave-shared";
 import fs from "fs";
 import os from "os";
 
 @Injectable()
 export class ZwaveService {
-
   private readonly logger: Logger = new Logger(ZwaveService.name);
   private readonly BASEPATH: string = `${os.homedir()}/.homestuff`;
   private _zwave: ZWave;
@@ -46,14 +45,13 @@ export class ZwaveService {
       UserPath: zwavedir,
       ConsoleOutput: false,
       LogFileName: "homestuff.zwave.log",
-      Logging: true
+      Logging: true,
     });
 
     this._zwave.on("connected", this.onConnected.bind(this));
     this._zwave.on("driver failed", this.onFailed.bind(this));
     this._zwave.on("driver ready", this.onReady.bind(this));
-    this._zwave.on("manufacturer specific DB ready",
-                  this.onDBReady.bind(this));
+    this._zwave.on("manufacturer specific DB ready", this.onDBReady.bind(this));
     this._zwave.on("scan complete", this.onScanCompleted.bind(this));
   }
 
@@ -92,7 +90,7 @@ export class ZwaveService {
   }
 
   private findCandidateDevices(): string[] {
-    const devlst = fs.readdirSync("/dev", {encoding: "utf-8"});
+    const devlst = fs.readdirSync("/dev", { encoding: "utf-8" });
     const candidates: string[] = [];
     devlst.forEach((dev: string) => {
       if (dev.startsWith("ttyACM") || dev.startsWith("ttyUSB")) {
@@ -143,8 +141,12 @@ export class ZwaveService {
   }
 
   public isDriverReady(): boolean {
-    return (this.isConnected() && this.isReady() &&
-            this.isDBReady() && this.isScanComplete());
+    return (
+      this.isConnected() &&
+      this.isReady() &&
+      this.isDBReady() &&
+      this.isScanComplete()
+    );
   }
 
   public start(): boolean {
@@ -154,7 +156,7 @@ export class ZwaveService {
       return true;
     }
 
-    let devicestr: string|undefined = this._device;
+    let devicestr: string | undefined = this._device;
     if (!devicestr || devicestr === "") {
       const candidates = this.findCandidateDevices();
       if (candidates.length == 0) {
@@ -163,7 +165,7 @@ export class ZwaveService {
       }
       devicestr = candidates[0];
       this._device = devicestr;
-      this.logger.log(`candidate device: ${this._device}`)
+      this.logger.log(`candidate device: ${this._device}`);
     }
 
     this._zwave.connect(this._device);
