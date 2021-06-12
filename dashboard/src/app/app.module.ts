@@ -12,22 +12,19 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { HttpClientModule } from '@angular/common/http';
-import { NgModule } from '@angular/core';
-import { FlexLayoutModule } from '@angular/flex-layout';
+import { HttpClientModule } from "@angular/common/http";
+import { NgModule } from "@angular/core";
+import { FlexLayoutModule } from "@angular/flex-layout";
 import { MatIconModule, MatIconRegistry } from "@angular/material/icon";
-import { BrowserModule, DomSanitizer } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { BrowserModule, DomSanitizer } from "@angular/platform-browser";
+import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 
-import { AppComponent } from './app.component';
-import { AppRoutingModule } from './app-routing.module';
-import { UiModule } from './ui/ui.module';
-
+import { AppComponent } from "./app.component";
+import { AppRoutingModule } from "./app-routing.module";
+import { UiModule } from "./ui/ui.module";
 
 @NgModule({
-  declarations: [
-    AppComponent
-  ],
+  declarations: [AppComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
@@ -41,7 +38,6 @@ import { UiModule } from './ui/ui.module';
   bootstrap: [AppComponent]
 })
 export class AppModule {
-
   public constructor(
     matIconRegistry: MatIconRegistry,
     domSanitizer: DomSanitizer

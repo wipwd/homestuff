@@ -12,18 +12,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { LayoutModule } from '@angular/cdk/layout';
-import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
-import { FlexLayoutModule } from '@angular/flex-layout';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatToolbarModule } from '@angular/material/toolbar';
+import { LayoutModule } from "@angular/cdk/layout";
+import { CommonModule } from "@angular/common";
+import { NgModule } from "@angular/core";
+import { FlexLayoutModule } from "@angular/flex-layout";
+import { MatButtonModule } from "@angular/material/button";
+import { MatIconModule } from "@angular/material/icon";
+import { MatListModule } from "@angular/material/list";
+import { MatSidenavModule } from "@angular/material/sidenav";
+import { MatToolbarModule } from "@angular/material/toolbar";
 
-import { DashboardComponent } from './dashboard/dashboard.component';
-
+import { DashboardComponent } from "./dashboard/dashboard.component";
 
 @NgModule({
   declarations: [DashboardComponent],
@@ -38,4 +37,4 @@ import { DashboardComponent } from './dashboard/dashboard.component';
     FlexLayoutModule
   ]
 })
-export class UiModule { }
+export class UiModule {}
