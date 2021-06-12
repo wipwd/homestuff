@@ -172,4 +172,24 @@ export class NodesService {
   public getNodes(): ZWNode[] {
     return Object.values(this.nodes);
   }
+
+  public getNode(id: number): ZWNode | undefined {
+    if (id in this.nodes) {
+      return this.nodes[id];
+    }
+    return undefined;
+  }
+
+  public getNeighbours(id: number): ZWNode[] {
+    const zwave = this.zwaveService.driver;
+    const nodeids: number[] = zwave.getNodeNeighbors(id);
+    const neighbours: ZWNode[] = [];
+    nodeids.forEach((nodeid: number) => {
+      if (!(nodeid in this.nodes)) {
+        return;
+      }
+      neighbours.push(this.nodes[nodeid]);
+    });
+    return neighbours;
+  }
 }
