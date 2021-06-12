@@ -15,9 +15,20 @@
 import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 
-import { DashboardComponent } from "./ui/dashboard/dashboard.component";
+import { MainLayoutComponent } from "./ui/main-layout/main.component";
 
-const routes: Routes = [{ path: "", component: DashboardComponent }];
+const routes: Routes = [
+  {
+    path: "",
+    component: MainLayoutComponent,
+    children: [
+      {
+        path: "dashboard",
+        children: []
+      }
+    ]
+  }
+];
 
 @NgModule({
   imports: [

@@ -22,10 +22,12 @@ import { MatListModule } from "@angular/material/list";
 import { MatSidenavModule } from "@angular/material/sidenav";
 import { MatToolbarModule } from "@angular/material/toolbar";
 
-import { DashboardComponent } from "./dashboard/dashboard.component";
+import { AppRoutingModule } from "../app-routing.module";
+import { MainLayoutComponent } from "./main-layout/main.component";
+import { NetworkComponent } from "./network/network.component";
 
 @NgModule({
-  declarations: [DashboardComponent],
+  declarations: [MainLayoutComponent, NetworkComponent],
   imports: [
     CommonModule,
     MatIconModule,
@@ -34,7 +36,8 @@ import { DashboardComponent } from "./dashboard/dashboard.component";
     MatButtonModule,
     MatSidenavModule,
     MatListModule,
-    FlexLayoutModule
+    FlexLayoutModule,
+    AppRoutingModule
   ]
 })
 export class UiModule {}

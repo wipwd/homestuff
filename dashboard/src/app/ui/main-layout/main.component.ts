@@ -19,10 +19,10 @@ import { map, shareReplay } from "rxjs/operators";
 
 @Component({
   selector: "hs-dashboard",
-  templateUrl: "./dashboard.component.html",
-  styleUrls: ["./dashboard.component.scss"]
+  templateUrl: "./main.component.html",
+  styleUrls: ["./main.component.scss"]
 })
-export class DashboardComponent {
+export class MainLayoutComponent {
   isHandset$: Observable<boolean> = this.breakpointObserver
     .observe(Breakpoints.Handset)
     .pipe(

@@ -21,16 +21,16 @@ import { MatSidenavModule } from "@angular/material/sidenav";
 import { MatToolbarModule } from "@angular/material/toolbar";
 import { NoopAnimationsModule } from "@angular/platform-browser/animations";
 
-import { DashboardComponent } from "./dashboard.component";
+import { MainLayoutComponent } from "./main.component";
 
-describe("DashboardComponent", () => {
-  let component: DashboardComponent;
-  let fixture: ComponentFixture<DashboardComponent>;
+describe("MainLayoutComponent", () => {
+  let component: MainLayoutComponent;
+  let fixture: ComponentFixture<MainLayoutComponent>;
 
   beforeEach(
     waitForAsync(() => {
       TestBed.configureTestingModule({
-        declarations: [DashboardComponent],
+        declarations: [MainLayoutComponent],
         imports: [
           NoopAnimationsModule,
           LayoutModule,
@@ -45,7 +45,7 @@ describe("DashboardComponent", () => {
   );
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(DashboardComponent);
+    fixture = TestBed.createComponent(MainLayoutComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
