@@ -12,36 +12,36 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { LayoutModule } from "@angular/cdk/layout";
 import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
-import { FlexLayoutModule } from "@angular/flex-layout";
-import { MatButtonModule } from "@angular/material/button";
-import { MatCardModule } from "@angular/material/card";
+import { FlexModule } from "@angular/flex-layout";
 import { MatIconModule } from "@angular/material/icon";
 import { MatListModule } from "@angular/material/list";
-import { MatSidenavModule } from "@angular/material/sidenav";
-import { MatToolbarModule } from "@angular/material/toolbar";
+import { AppRoutingModule } from "src/app/app-routing.module";
 
-import { AppRoutingModule } from "../app-routing.module";
-import { MainLayoutComponent } from "./main-layout/main.component";
-import { SidenavItemModule } from "./main-layout/sidenav-item/sidenav-item.module";
-import { NetworkComponent } from "./network/network.component";
+import {
+  SidenavItemComponent,
+  SidenavItemIconComponent,
+  SidenavItemTitleDirective
+} from "./sidenav-item.component";
 
 @NgModule({
-  declarations: [MainLayoutComponent, NetworkComponent],
+  declarations: [
+    SidenavItemComponent,
+    SidenavItemIconComponent,
+    SidenavItemTitleDirective
+  ],
   imports: [
     CommonModule,
     MatIconModule,
-    LayoutModule,
-    MatToolbarModule,
-    MatButtonModule,
-    MatSidenavModule,
-    MatListModule,
-    FlexLayoutModule,
     AppRoutingModule,
-    MatCardModule,
-    SidenavItemModule
+    MatListModule,
+    FlexModule
+  ],
+  exports: [
+    SidenavItemTitleDirective,
+    SidenavItemIconComponent,
+    SidenavItemComponent
   ]
 })
-export class UiModule {}
+export class SidenavItemModule {}

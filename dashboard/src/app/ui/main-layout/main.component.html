@@ -19,27 +19,15 @@
       [opened]="(isHandset$ | async) === false">
     <mat-toolbar>Menu</mat-toolbar>
     <mat-nav-list fxLayout="column">
-      <mat-list-item>
-        <div fxLayout="column"
-             fxLayoutAlign="start center"
-             style="width: 63px">
-          <mat-icon svgIcon="mdi:tablet-dashboard"
-                    class="sidenav-icon">
-          </mat-icon>
-          <span style="font-size: small;">Dashboard</span>
-        </div>
-      </mat-list-item>
-      <div style="height: 20px"></div> <!-- spacer -->
-      <mat-list-item routerLink="/dashboard/network">
-        <div fxLayout="column"
-             fxLayoutAlign="start center"
-             style="width: 63px">
-          <mat-icon svgIcon="mdi:access-point"
-                    class="sidenav-icon">
-          </mat-icon>
-          <span style="font-size: small;">Network</span>
-        </div>
-      </mat-list-item>
+
+      <hs-sidenav-item>
+        <hs-sidenav-item-icon>mdi:tablet-dashboard</hs-sidenav-item-icon>
+        <hs-sidenav-item-title>Dashboard</hs-sidenav-item-title>
+      </hs-sidenav-item>
+      <hs-sidenav-item routerLink="/dashboard/network">
+        <hs-sidenav-item-icon>mdi:access-point</hs-sidenav-item-icon>
+        <hs-sidenav-item-title>Network</hs-sidenav-item-title>
+      </hs-sidenav-item>
 
     </mat-nav-list>
   </mat-sidenav>
