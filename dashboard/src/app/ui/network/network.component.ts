@@ -12,35 +12,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
+import { Component, OnInit } from "@angular/core";
 
-.sidenav-container {
-  height: 100%;
-}
+@Component({
+  selector: "hs-network",
+  templateUrl: "./network.component.html",
+  styleUrls: ["./network.component.scss"]
+})
+export class NetworkComponent implements OnInit {
+  constructor() {}
 
-.sidenav {
-  width: 100px;
-}
-
-.sidenav .mat-toolbar {
-  background: inherit;
-}
-
-.mat-toolbar.mat-primary {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
-.content-container {
-  padding-top: 20px;
-  padding-right: 20px;
-  padding-left: 20px;
-}
-
-.router-container {
-  width: 100%;
-}
-
-.sidenav-icon {
-  transform: scale(1.5);
+  public ngOnInit(): void {
+    return;
+  }
 }

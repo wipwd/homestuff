@@ -24,18 +24,18 @@
              fxLayoutAlign="start center"
              style="width: 63px">
           <mat-icon svgIcon="mdi:tablet-dashboard"
-                   style="transform: scale(1.5);">
+                    class="sidenav-icon">
           </mat-icon>
           <span style="font-size: small;">Dashboard</span>
         </div>
       </mat-list-item>
       <div style="height: 20px"></div> <!-- spacer -->
-      <mat-list-item>
+      <mat-list-item routerLink="/dashboard/network">
         <div fxLayout="column"
              fxLayoutAlign="start center"
              style="width: 63px">
           <mat-icon svgIcon="mdi:access-point"
-                    style="transform: scale(1.5);">
+                    class="sidenav-icon">
           </mat-icon>
           <span style="font-size: small;">Network</span>
         </div>
@@ -56,6 +56,12 @@
       <span>dashboard</span>
     </mat-toolbar>
     <!-- Add Content Here -->
-    <router-outlet></router-outlet>
+    <div fxLayout="column"
+         fxLayoutAlign="start center"
+         class="content-container">
+      <div class="router-container">
+        <router-outlet></router-outlet>
+      </div>
+    </div>
   </mat-sidenav-content>
 </mat-sidenav-container>

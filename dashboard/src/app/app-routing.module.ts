@@ -16,6 +16,7 @@ import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 
 import { MainLayoutComponent } from "./ui/main-layout/main.component";
+import { NetworkComponent } from "./ui/network/network.component";
 
 const routes: Routes = [
   {
@@ -24,7 +25,7 @@ const routes: Routes = [
     children: [
       {
         path: "dashboard",
-        children: []
+        children: [{ path: "network", component: NetworkComponent }]
       }
     ]
   }
