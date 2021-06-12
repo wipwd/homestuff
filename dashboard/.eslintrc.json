@@ -10,8 +10,7 @@
       ],
       "parserOptions": {
         "project": [
-          "./dashboard/tsconfig.json",
-          "./dashboard/e2e/tsconfig.json"
+          "./dashboard/tsconfig.json"
         ],
         "createDefaultProgram": true,
         "sourceType": "module"
@@ -49,6 +48,10 @@
             "prefix": "hs",
             "style": "kebab-case"
           }
+        ],
+        "quotes": [
+          "error",
+          "double"
         ]
       }
     },
