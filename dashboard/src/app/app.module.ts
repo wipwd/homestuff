@@ -1,3 +1,4 @@
+import { HttpClientModule } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { MatIconModule, MatIconRegistry } from "@angular/material/icon";
 import { BrowserModule, DomSanitizer } from '@angular/platform-browser';
@@ -14,7 +15,8 @@ import { AppRoutingModule } from './app-routing.module';
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
-    MatIconModule
+    MatIconModule,
+    HttpClientModule,
   ],
   providers: [],
   bootstrap: [AppComponent]
@@ -25,7 +27,8 @@ export class AppModule {
     matIconRegistry: MatIconRegistry,
     domSanitizer: DomSanitizer
   ) {
-    matIconRegistry.addSvgIconSet(
+    matIconRegistry.addSvgIconSetInNamespace(
+      "mdi",
       domSanitizer.bypassSecurityTrustResourceUrl("./assets/mdi.svg")
     );
   }
