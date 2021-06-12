@@ -20,10 +20,11 @@ import { CtrlController } from './ctrl/ctrl.controller';
 import { ValuesService } from './values/values.service';
 import { ValuesController } from './values/values.controller';
 import { DBModule } from '../db/db.module';
+import { NodesController } from './nodes/nodes.controller';
 
 @Module({
   imports: [DBModule],
   providers: [ZwaveService, NodesService, CtrlService, ValuesService],
-  controllers: [CtrlController, ValuesController]
+  controllers: [CtrlController, ValuesController, NodesController]
 })
 export class ZwaveModule {}

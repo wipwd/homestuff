@@ -173,4 +173,7 @@ export class NodesService {
     return ids;
   }
 
+  public getNodes(): ZWNode[] {
+    return Object.values(this.nodes);
+  }
 }
