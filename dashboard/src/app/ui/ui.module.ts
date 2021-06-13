@@ -18,6 +18,7 @@ import { NgModule } from "@angular/core";
 import { FlexLayoutModule } from "@angular/flex-layout";
 import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
+import { MatDialogModule } from "@angular/material/dialog";
 import { MatIconModule } from "@angular/material/icon";
 import { MatListModule } from "@angular/material/list";
 import { MatSidenavModule } from "@angular/material/sidenav";
@@ -27,9 +28,10 @@ import { AppRoutingModule } from "../app-routing.module";
 import { MainLayoutComponent } from "./main-layout/main.component";
 import { SidenavItemModule } from "./main-layout/sidenav-item/sidenav-item.module";
 import { NetworkComponent } from "./network/network.component";
+import { NodeDialogComponent } from "./network/node-dialog/node-dialog.component";
 
 @NgModule({
-  declarations: [MainLayoutComponent, NetworkComponent],
+  declarations: [MainLayoutComponent, NetworkComponent, NodeDialogComponent],
   imports: [
     CommonModule,
     MatIconModule,
@@ -41,7 +43,8 @@ import { NetworkComponent } from "./network/network.component";
     FlexLayoutModule,
     AppRoutingModule,
     MatCardModule,
-    SidenavItemModule
+    SidenavItemModule,
+    MatDialogModule
   ]
 })
 export class UiModule {}
