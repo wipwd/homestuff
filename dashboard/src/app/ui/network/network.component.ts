@@ -14,7 +14,7 @@
  */
 import { Component, OnInit } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
-import { ZWNode } from "src/app/shared/models/nodes.model";
+import { ZWNode, ZWNodeStateEnum } from "src/app/shared/models/nodes.model";
 
 import { NodesService } from "../../shared/services/api/nodes.service";
 import { NodeDialogComponent } from "./node-dialog/node-dialog.component";
@@ -56,6 +56,10 @@ export class NetworkComponent implements OnInit {
 
   public onMouseLeave(idx: number): void {
     this.hoverIdx = -1;
+  }
+
+  public getStateStr(state: number): string {
+    return ZWNodeStateEnum[state];
   }
 
   private showNodeDialog(node: ZWNode): void {

@@ -40,5 +40,8 @@
       <span *ngIf="node.available">available</span>
       <span *ngIf="!node.available">not available</span>
     </div>
+    <div>
+      <span>{{getStateStr(node.state)}}</span>
+    </div>
   </mat-card>
 </div>
