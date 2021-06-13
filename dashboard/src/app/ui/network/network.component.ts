@@ -13,6 +13,9 @@
  * GNU Affero General Public License for more details.
  */
 import { Component, OnInit } from "@angular/core";
+import { ZWNode } from "src/app/shared/models/nodes.model";
+
+import { NodesService } from "../../shared/services/api/nodes.service";
 
 @Component({
   selector: "hs-network",
@@ -20,9 +23,30 @@ import { Component, OnInit } from "@angular/core";
   styleUrls: ["./network.component.scss"]
 })
 export class NetworkComponent implements OnInit {
-  constructor() {}
+  public nodes: ZWNode[] = [];
+  public hoverIdx: number = -1;
+
+  public constructor(private nodesService: NodesService) {
+    this.nodesService.getNodes().subscribe({
+      next: (nodes: ZWNode[]) => {
+        this.nodes = nodes;
+      }
+    });
+  }
 
   public ngOnInit(): void {
     return;
+  }
+
+  public onClick(idx: number): void {
+    console.log("clicked idx = ", idx);
+  }
+
+  public onMouseHover(idx: number): void {
+    this.hoverIdx = idx;
+  }
+
+  public onMouseLeave(idx: number): void {
+    this.hoverIdx = -1;
   }
 }

@@ -14,23 +14,31 @@
 -->
 
 <div>
-  <mat-card>
-    <div fxLayout="row" fxLayoutAlign="space-between start">
-      <div>
-        <span>#1</span>
-      </div>
-      <div>
-        <span>AOTEC Thing</span>
-      </div>
-      <div>
-        <span>Model FOO</span>
-      </div>
-      <div>
-        <span>Switch</span>
-      </div>
-      <div>
-        <span>STATE</span>
-      </div>
+  <mat-card *ngFor="let node of nodes; index as idx"
+            fxLayout="row" fxLayoutAlign="space-between start"
+            (click)="onClick(idx)"
+            (mouseover)="onMouseHover(idx)"
+            (mouseleave)="onMouseLeave(idx)"
+            [class.card-hover]="hoverIdx === idx">
+    <div>
+      <span>{{node.id}}</span>
+    </div>
+    <div>
+      <span>{{node.info?.manufacturer}}</span>
+    </div>
+    <div>
+      <span>{{node.info?.product}}</span>
+    </div>
+    <div>
+      <span>{{node.info?.type}}</span>
+    </div>
+    <div>
+      <span *ngIf="node.ready">ready</span>
+      <span *ngIf="!node.ready">not ready</span>
+    </div>
+    <div>
+      <span *ngIf="node.available">available</span>
+      <span *ngIf="!node.available">not available</span>
     </div>
   </mat-card>
 </div>
