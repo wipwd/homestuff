@@ -13,60 +13,51 @@
  * GNU Affero General Public License for more details.
  */
 import { Injectable, Logger } from "@nestjs/common";
-import ZWave, { NodeInfo, Notification } from "openzwave-shared";
+import { ZWaveNode } from "zwave-js";
+
 import { ZwaveService } from "../zwave.service";
+import { ZWNode } from "../zwave.types";
 
-export enum ZWNodeStateEnum {
-  none = 0,
-  alive = 1,
-  awake = 2,
-  dead = 3,
-  sleep = 4,
-}
-
-export interface ZWNode {
+export interface NodeEntry {
   id: number;
-  info?: NodeInfo;
-  available: boolean;
-  ready: boolean;
-  state: ZWNodeStateEnum;
+  node: ZWaveNode;
   removed: boolean;
 }
 
 @Injectable()
 export class NodesService {
   private readonly logger: Logger = new Logger(NodesService.name);
-  private nodes: { [id: number]: ZWNode } = {};
+  private nodes: { [id: number]: NodeEntry } = {};
 
   public constructor(private zwaveService: ZwaveService) {
-    const driver: ZWave = this.zwaveService.driver;
+    const driver = this.zwaveService.getDriver();
 
-    driver.on("node added", this.onAdded.bind(this));
-    driver.on("node removed", this.onRemoved.bind(this));
-    driver.on("node available", this.onAvailable.bind(this));
-    driver.on("node reset", this.onReset.bind(this));
-    driver.on("polling enabled", this.onPollingEnabled.bind(this));
-    driver.on("polling disabled", this.onPollingDisabled.bind(this));
-    driver.on("node naming", this.onNaming.bind(this));
-    driver.on("node ready", this.onReady.bind(this));
-    driver.on("node event", this.onEvent.bind(this));
-    driver.on("notification", this.onNotification.bind(this));
+    driver.on("driver ready", () => {
+      driver.controller.on("node added", this.onAdded.bind(this));
+      driver.controller.on("node removed", this.onRemoved.bind(this));
+
+      driver.controller.nodes.forEach((node: ZWaveNode) => {
+        node.on("interview completed", this.onReady.bind(this));
+        node.on("notification", this.onNotification.bind(this));
+        this.addNode(node);
+      });
+    });
   }
 
-  private onAdded(id: number): void {
-    this.logger.debug(`add node id = ${id}`);
-    let info: NodeInfo | undefined = undefined;
-    if (id in this.nodes) {
-      info = this.nodes[id].info;
-    }
+  private addNode(node: ZWaveNode): NodeEntry {
+    const id = node.nodeId;
     this.nodes[id] = {
       id: id,
-      info: info,
-      available: false,
-      ready: false,
-      state: ZWNodeStateEnum.none,
+      node: node,
       removed: false,
     };
+    return this.nodes[id];
+  }
+
+  private onAdded(node: ZWaveNode): void {
+    const id: number = node.nodeId;
+    this.logger.debug(`add node id = ${id}`);
+    this.addNode(node);
   }
 
   private onRemoved(id: number): void {
@@ -74,93 +65,61 @@ export class NodesService {
     if (!(id in this.nodes)) {
       return;
     }
-    const node = this.nodes[id];
-    node.available = false;
-    node.ready = false;
-    node.state = ZWNodeStateEnum.none;
-    node.removed = true;
+    this.nodes[id].removed = true;
   }
 
-  private onAvailable(id: number, info: NodeInfo): void {
-    const r = this.getNodeVendorModel(info);
-    this.logger.debug(`available node id = ${id}, ${r.vendor} ${r.model}`);
+  private onReady(node: ZWaveNode): void {
+    const id = node.nodeId;
     if (!(id in this.nodes)) {
-      this.onAdded(id);
+      throw new Error(`missing node id ${id} from nodes cache`);
     }
-    const node = this.nodes[id];
-    node.info = info;
-    node.available = true;
+    this.nodes[id].node = node;
+    const r = this.getNodeVendorModel(node);
+    this.logger.debug(`ready node id = ${id}, ${r.vendor} ${r.model}`);
   }
 
-  private onReset(id: number): void {
-    this.logger.error(`on reset (node: ${id}) not implemented`);
-  }
-
-  private onPollingEnabled(id: number): void {
-    this.logger.error(`on polling enabled (node: ${id}) not implemented`);
-  }
-
-  private onPollingDisabled(id: number): void {
-    this.logger.error(`on polling disabled (node: ${id}) not implemented`);
-  }
-
-  private onNaming(id: number, info: NodeInfo): void {
-    if (!(id in this.nodes)) {
-      this.onAdded(id);
-    }
-    this.nodes[id].info = info;
-  }
-
-  private onReady(id: number, info: NodeInfo): void {
-    const r = this.getNodeVendorModel(info);
-    this.logger.debug(
-      `ready node id = ${id}, ${r.vendor} ${r.model} ${info.name}`,
+  private onNotification(
+    node: ZWaveNode,
+    ccId: any,
+    args: Record<string, unknown>,
+  ) {
+    this.logger.log(
+      `notification: node ${node.nodeId}, ccId: ${ccId}, args: ${args}`,
     );
-    if (!(id in this.nodes)) {
-      this.onAdded(id);
-    }
-    this.nodes[id].info = info;
-    this.nodes[id].ready = true;
   }
 
-  private onEvent(id: number, data: any) {
-    this.logger.error(`on event (node: ${id}) not implemented`);
-  }
-
-  private onNotification(id: number, notification: Notification, str: string) {
-    if (!(id in this.nodes)) {
-      this.onAdded(id);
-    }
-    const node = this.nodes[id];
-    switch (notification) {
-      case Notification.NodeAlive:
-        node.state = ZWNodeStateEnum.alive;
-        break;
-      case Notification.NodeAwake:
-        node.state = ZWNodeStateEnum.awake;
-        break;
-      case Notification.NodeDead:
-        node.state = ZWNodeStateEnum.dead;
-        break;
-      case Notification.NodeSleep:
-        node.state = ZWNodeStateEnum.sleep;
-        break;
-    }
-  }
-
-  private getNodeVendorModel(info: NodeInfo): {
+  private getNodeVendorModel(node: ZWaveNode): {
     vendor: string;
     model: string;
+    desc: string;
   } {
-    let manufacturer = "";
-    let product = "";
-    if (parseInt(info.manufacturerid, 16) > 0) {
-      manufacturer = info.manufacturer;
-    }
-    if (parseInt(info.productid, 16) > 0) {
-      product = info.product;
-    }
-    return { vendor: manufacturer, model: product };
+    return {
+      vendor: !!node.deviceConfig ? node.deviceConfig.manufacturer : "",
+      model: !!node.deviceConfig ? node.deviceConfig.label : "",
+      desc: !!node.deviceConfig ? node.deviceConfig.description : "",
+    };
+  }
+
+  private toZWNode(entry: NodeEntry): ZWNode {
+    const vm = this.getNodeVendorModel(entry.node);
+    return {
+      id: entry.id,
+      vendor: vm.vendor,
+      model: vm.model,
+      desc: vm.desc,
+      ready: entry.node.ready,
+      status: entry.node.status,
+      type: entry.node.nodeType,
+      caps: {
+        isListening: !!entry.node.isListening,
+        isFrequentListening: !!entry.node.isFrequentListening,
+        isRouting: !!entry.node.isRouting,
+        isSecure: !!entry.node.isSecure,
+        canSleep: !!entry.node.canSleep,
+        isBeaming: !!entry.node.supportsBeaming,
+      },
+      role: entry.node.zwavePlusRoleType,
+    };
   }
 
   public getNodeIDs(): number[] {
@@ -170,25 +129,33 @@ export class NodesService {
   }
 
   public getNodes(): ZWNode[] {
-    return Object.values(this.nodes);
+    const lst: ZWNode[] = [];
+    Object.values(this.nodes).forEach((entry: NodeEntry) => {
+      lst.push(this.toZWNode(entry));
+    });
+    return lst;
   }
 
   public getNode(id: number): ZWNode | undefined {
     if (id in this.nodes) {
-      return this.nodes[id];
+      return this.toZWNode(this.nodes[id]);
     }
     return undefined;
   }
 
-  public getNeighbours(id: number): ZWNode[] {
-    const zwave = this.zwaveService.driver;
-    const nodeids: number[] = zwave.getNodeNeighbors(id);
+  public nodeExists(id: number): boolean {
+    return id in this.nodes;
+  }
+
+  public async getNeighbours(id: number): Promise<ZWNode[]> {
+    const zwave = this.zwaveService.getDriver();
+    const nodeids = await zwave.controller.getNodeNeighbors(id);
     const neighbours: ZWNode[] = [];
     nodeids.forEach((nodeid: number) => {
       if (!(nodeid in this.nodes)) {
         return;
       }
-      neighbours.push(this.nodes[nodeid]);
+      neighbours.push(this.toZWNode(this.nodes[nodeid]));
     });
     return neighbours;
   }

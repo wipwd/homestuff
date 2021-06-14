@@ -12,34 +12,37 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { Injectable, Logger } from '@nestjs/common';
-import { NodesService } from '../nodes/nodes.service';
-import { ZwaveService } from '../zwave.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { NodesService } from "../nodes/nodes.service";
+import { ZWNode } from "../zwave.types";
+import { ZwaveService } from "../zwave.service";
 
-export declare type NetworkMesh = {[id: number]: number[]};
+export declare type NetworkMesh = { [id: number]: ZWNode[] };
 
 @Injectable()
 export class CtrlService {
-
   private readonly logger: Logger = new Logger(CtrlService.name);
 
   public constructor(
     private zwaveService: ZwaveService,
-    private nodesService: NodesService
+    private nodesService: NodesService,
   ) {
-
-    const driver = this.zwaveService.driver;
-
-    driver.on("controller command", this.onCommand.bind(this));
+    // const driver = this.zwaveService.driver;
+    // driver.on("controller command", this.onCommand.bind(this));
   }
 
   private onCommand(
-    id: number, state: any, notification: any,
-    msg: string, command: number
+    id: number,
+    state: any,
+    notification: any,
+    msg: string,
+    command: number,
   ): void {
-    this.logger.log(`command on node ${id}, state: ${state}, ` +
-                    `notification: ${notification}, msg: ${msg}, ` +
-                    `cmd: ${command}`);
+    this.logger.log(
+      `command on node ${id}, state: ${state}, ` +
+        `notification: ${notification}, msg: ${msg}, ` +
+        `cmd: ${command}`,
+    );
   }
 
   public healNetwork(): boolean {
@@ -49,19 +52,29 @@ export class CtrlService {
       return false;
     }
 
+    /*
     const driver = this.zwaveService.driver;
     const nodes = this.nodesService.getNodeIDs();
     nodes.forEach((id: number) => driver.requestNodeNeighborUpdate(id));
+    */
     return true;
   }
 
-  public getNetworkMesh(): NetworkMesh {
-    const driver = this.zwaveService.driver;
+  public async getNetworkMesh(): Promise<NetworkMesh> {
+    const driver = this.zwaveService.getDriver();
     const nodes = this.nodesService.getNodeIDs();
 
     const mesh: NetworkMesh = {};
-    nodes.forEach((id: number) => {
-      mesh[id] = driver.getNodeNeighbors(id);
+    nodes.forEach(async (id: number) => {
+      const neighbors = await driver.controller.getNodeNeighbors(id);
+      const neighbors_lst = [];
+      neighbors.forEach((neighborid) => {
+        if (!(neighborid in nodes)) {
+          return;
+        }
+        neighbors_lst.push(nodes[neighborid]);
+      });
+      mesh[id] = neighbors_lst;
     });
     return mesh;
   }

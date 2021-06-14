@@ -42,11 +42,13 @@ export class ValuesService {
     private influxService: InfluxDBService
   ) {
 
+    /*
     let driver = this.zwaveService.driver;
     driver.on("value added", this.updateValue.bind(this));
     driver.on("value changed", this.updateValue.bind(this));
     driver.on("value refreshed", this.updateValue.bind(this));
     driver.on("value removed", this.onRemoved.bind(this));
+    */
   }
 
   private onRemoved(id: number, cls: number, value: Value): void {

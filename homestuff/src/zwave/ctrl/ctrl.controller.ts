@@ -25,7 +25,7 @@ export class CtrlController {
   }
 
   @Get("mesh")
-  public getNetworkMesh(): NetworkMesh {
-    return this.ctrlService.getNetworkMesh();
+  public async getNetworkMesh(): Promise<NetworkMesh> {
+    return await this.ctrlService.getNetworkMesh();
   }
 }

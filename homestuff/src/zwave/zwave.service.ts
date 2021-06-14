@@ -13,7 +13,7 @@
  * GNU Affero General Public License for more details.
  */
 import { Injectable, Logger } from "@nestjs/common";
-import ZWave from "openzwave-shared";
+import { Driver } from "zwave-js";
 import fs from "fs";
 import os from "os";
 
@@ -21,7 +21,7 @@ import os from "os";
 export class ZwaveService {
   private readonly logger: Logger = new Logger(ZwaveService.name);
   private readonly BASEPATH: string = `${os.homedir()}/.homestuff`;
-  private _zwave: ZWave;
+  private driver: Driver;
   private _device?: string;
   private _is_connected: boolean = false;
   private _is_failed: boolean = false;
@@ -41,28 +41,31 @@ export class ZwaveService {
       fs.mkdirSync(zwavedir);
     }
 
-    this._zwave = new ZWave({
-      UserPath: zwavedir,
-      ConsoleOutput: false,
-      LogFileName: "homestuff.zwave.log",
-      Logging: true,
+    const device = this.getCandidateDevice();
+    if (!device) {
+      this.logger.error("unable to find candidate device");
+      throw new Error("no candidate device for zwave driver");
+    }
+
+    if (!fs.existsSync(device)) {
+      this.logger.error(`selected device '${device}' does not exist`);
+      throw new Error("zwave candidate device does not exist: " + device);
+    }
+
+    this.driver = new Driver(device, {
+      logConfig: {
+        logToFile: true,
+        filename: `${this.BASEPATH}/zwavejs`,
+      },
     });
 
-    this._zwave.on("connected", this.onConnected.bind(this));
-    this._zwave.on("driver failed", this.onFailed.bind(this));
-    this._zwave.on("driver ready", this.onReady.bind(this));
-    this._zwave.on("manufacturer specific DB ready", this.onDBReady.bind(this));
-    this._zwave.on("scan complete", this.onScanCompleted.bind(this));
+    this.driver.on("error", this.onError.bind(this));
+    this.driver.once("driver ready", this.onReady.bind(this));
+    this.driver.once("all nodes ready", this.onScanCompleted.bind(this));
   }
 
-  private onConnected(version: string): void {
-    this.logger.debug("zwave driver connected");
-    this._is_connected = true;
-    this._is_failed = false;
-  }
-
-  private onFailed(): void {
-    this.logger.debug("zwave driver failed");
+  private onError(error): void {
+    this.logger.debug("zwave driver failed: " + error);
     this._is_connected = false;
     this._is_failed = true;
     this._is_ready = false;
@@ -73,11 +76,6 @@ export class ZwaveService {
     this._is_connected = true;
     this._is_failed = false;
     this._is_ready = true;
-  }
-
-  private onDBReady(): void {
-    this.logger.debug("zwave manufacturer db ready");
-    this._is_db_ready = true;
   }
 
   private onScanCompleted(): void {
@@ -100,24 +98,16 @@ export class ZwaveService {
     return candidates;
   }
 
-  public get driver(): ZWave {
-    return this._zwave;
-  }
-
-  public get device(): string {
-    return this._device;
-  }
-
-  public set device(devicestr: string) {
-    if (this.deviceExists(devicestr)) {
-      this._device = devicestr;
-    } else {
-      this.logger.error(`device ${devicestr} does not exist`);
+  private getCandidateDevice(): string | undefined {
+    const candidates: string[] = this.findCandidateDevices();
+    if (candidates.length === 0) {
+      return undefined;
     }
+    return candidates[0];
   }
 
-  public get candidateDevices(): string[] {
-    return this.findCandidateDevices();
+  public getDriver(): Driver {
+    return this.driver;
   }
 
   public isConnected(): boolean {
@@ -149,26 +139,14 @@ export class ZwaveService {
     );
   }
 
-  public start(): boolean {
+  public async start(): Promise<boolean> {
     this.logger.log("start zwave driver");
     if (this.isConnected()) {
       this.logger.debug("attempted to start a connected network");
-      return true;
+      return false;
     }
 
-    let devicestr: string | undefined = this._device;
-    if (!devicestr || devicestr === "") {
-      const candidates = this.findCandidateDevices();
-      if (candidates.length == 0) {
-        this.logger.error("unable to find candidate device to start driver");
-        return false;
-      }
-      devicestr = candidates[0];
-      this._device = devicestr;
-      this.logger.log(`candidate device: ${this._device}`);
-    }
-
-    this._zwave.connect(this._device);
+    await this.driver.start();
     return true;
   }
 
@@ -177,7 +155,7 @@ export class ZwaveService {
     if (!this.isConnected()) {
       return true;
     }
-    this._zwave.disconnect(this._device);
+    this.driver.destroy();
     this._is_connected = false;
     this._is_failed = false;
     this._is_ready = false;
