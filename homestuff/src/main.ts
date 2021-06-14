@@ -30,6 +30,7 @@ async function bootstrap() {
   SwaggerModule.setup("api/docs", app, document);
 
   await app.listen(31337);
+  app.enableShutdownHooks();
 
   const zwaveService = app.get(ZwaveService);
   zwaveService.start();
