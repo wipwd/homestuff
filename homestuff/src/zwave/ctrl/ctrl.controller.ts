@@ -13,15 +13,30 @@
  * GNU Affero General Public License for more details.
  */
 import { Controller, Get, Post } from "@nestjs/common";
-import { CtrlService, NetworkMesh } from "./ctrl.service";
+import { CtrlService, HealStatus, NetworkMesh } from "./ctrl.service";
 
 @Controller("ctrl")
 export class CtrlController {
   public constructor(private ctrlService: CtrlService) {}
 
-  @Post("heal")
-  public healNetwork(): boolean {
-    return this.ctrlService.healNetwork();
+  @Post("heal/start")
+  public healNetworkStart(): boolean {
+    return this.ctrlService.healStart();
+  }
+
+  @Post("heal/stop")
+  public healNetworkStop(): boolean {
+    return this.ctrlService.healStop();
+  }
+
+  @Get("heal/status")
+  public getHealStatus(): HealStatus {
+    return this.ctrlService.getHealStatus();
+  }
+
+  @Get("heal/progress")
+  public getHealProgress(): number {
+    return this.ctrlService.getHealProgress();
   }
 
   @Get("mesh")

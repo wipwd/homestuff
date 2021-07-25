@@ -16,48 +16,111 @@ import { Injectable, Logger } from "@nestjs/common";
 import { NodesService } from "../nodes/nodes.service";
 import { ZWNode } from "../zwave.types";
 import { ZwaveService } from "../zwave.service";
+import { HealNodeStatus } from "zwave-js";
 
 export declare type NetworkMesh = { [id: number]: ZWNode[] };
+
+export declare type HealStatusDict = { [id: number]: HealNodeStatus };
+export declare type HealStatus = {
+  running: boolean;
+  progress: number;
+  nodes: HealStatusDict;
+};
 
 @Injectable()
 export class CtrlService {
   private readonly logger: Logger = new Logger(CtrlService.name);
 
+  private is_healing: boolean = false;
+  private heal_status?: ReadonlyMap<number, HealNodeStatus> = undefined;
+
   public constructor(
     private zwaveService: ZwaveService,
     private nodesService: NodesService,
   ) {
-    // const driver = this.zwaveService.driver;
-    // driver.on("controller command", this.onCommand.bind(this));
+    const driver = this.zwaveService.getDriver();
+    driver.on("driver ready", () => {
+      driver.controller.on(
+        "heal network done",
+        this.healNetworkDone.bind(this),
+      );
+      driver.controller.on(
+        "heal network progress",
+        this.healNetworkProgressUpdate.bind(this),
+      );
+    });
   }
 
-  private onCommand(
-    id: number,
-    state: any,
-    notification: any,
-    msg: string,
-    command: number,
+  private mapToDict(map: ReadonlyMap<number, HealNodeStatus>): HealStatusDict {
+    if (!map) {
+      return {};
+    }
+    const dict: HealStatusDict = {};
+    map.forEach((value: HealNodeStatus, key: number) => {
+      dict[key] = value;
+    });
+    return dict;
+  }
+
+  private healNetworkDone(status: ReadonlyMap<number, HealNodeStatus>): void {
+    this.logger.debug("heal done");
+    this.heal_status = status;
+    this.logger.debug(this.mapToDict(this.heal_status));
+    this.is_healing = false;
+  }
+
+  private healNetworkProgressUpdate(
+    status: ReadonlyMap<number, HealNodeStatus>,
   ): void {
-    this.logger.log(
-      `command on node ${id}, state: ${state}, ` +
-        `notification: ${notification}, msg: ${msg}, ` +
-        `cmd: ${command}`,
-    );
+    this.logger.debug("heal progress update");
+    this.heal_status = status;
+    this.logger.debug(this.mapToDict(this.heal_status));
   }
 
-  public healNetwork(): boolean {
-    this.logger.log("heal network");
-    if (!this.zwaveService.isDriverReady()) {
-      this.logger.warn("can't heal network while driver is not ready");
+  public healStart(): boolean {
+    this.logger.debug("start healing network");
+    if (this.is_healing) {
+      this.logger.debug("already healing, ignore.");
       return false;
     }
+    const driver = this.zwaveService.getDriver();
+    const ret = driver.controller.beginHealingNetwork();
+    if (ret) {
+      this.is_healing = true;
+    } else {
+      this.logger.error("unable to begin healing network");
+    }
+    return ret;
+  }
 
-    /*
-    const driver = this.zwaveService.driver;
-    const nodes = this.nodesService.getNodeIDs();
-    nodes.forEach((id: number) => driver.requestNodeNeighborUpdate(id));
-    */
-    return true;
+  public healStop(): boolean {
+    this.logger.debug("stop healing network");
+    const driver = this.zwaveService.getDriver();
+    const ret = driver.controller.stopHealingNetwork();
+    this.is_healing = false;
+    return ret;
+  }
+
+  public getHealProgress(): number {
+    if (!this.heal_status) {
+      return 0;
+    }
+    const num_nodes = this.heal_status.size;
+    let complete: number = 0;
+    this.heal_status.forEach((status: HealNodeStatus) => {
+      if (status !== "pending") {
+        complete++;
+      }
+    });
+    return (complete / num_nodes) * 100;
+  }
+
+  public getHealStatus(): HealStatus {
+    return {
+      running: this.is_healing,
+      progress: this.getHealProgress(),
+      nodes: this.mapToDict(this.heal_status),
+    };
   }
 
   public async getNetworkMesh(): Promise<NetworkMesh> {
