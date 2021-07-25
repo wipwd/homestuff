@@ -12,15 +12,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { Controller, Get, Query } from "@nestjs/common";
-import { ValueEntry, ValuesService } from "./values.service";
+import { Controller } from "@nestjs/common";
+import { ValuesService } from "./values.service";
 
 @Controller("values")
 export class ValuesController {
   public constructor(private valuesService: ValuesService) {}
-
-  @Get("latest")
-  public getLatest(@Query("node") nodeid: number): ValueEntry[] {
-    return this.valuesService.getLatestValuesByNode(nodeid);
-  }
 }

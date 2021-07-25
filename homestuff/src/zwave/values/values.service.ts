@@ -12,122 +12,124 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
  */
-import { Point } from '@influxdata/influxdb-client';
-import { Injectable, Logger } from '@nestjs/common';
-import { Value } from 'openzwave-shared';
-import { InfluxDBService } from 'src/db/influxdb/influxdb.service';
-import { ZwaveService } from '../zwave.service';
+import { Point } from "@influxdata/influxdb-client";
+import { Injectable, Logger } from "@nestjs/common";
+import { InfluxDBService } from "src/db/influxdb/influxdb.service";
+import {
+  ValueMetadataNumeric,
+  ZWaveNode,
+  ZWaveNodeValueAddedArgs,
+  ZWaveNodeValueRemovedArgs,
+  ZWaveNodeValueUpdatedArgs,
+} from "zwave-js";
+import { ZwaveService } from "../zwave.service";
 
+export declare type ValueEntry = {
+  nodeId: number;
+  cls: number;
+  key: number;
+  unit: string;
+  label: string;
+  value: number;
+  ts: number;
+};
 
-export declare type ValueEntry = {ts: number, value: Value};
-export declare type ValuesByID = {[id: string]: ValueEntry[]};
-export declare type ValuesByNode = {[id: number]: string[]};
-export declare type ClassesByNode = {[id: number]: number[]};
-
+export declare type ValuesByNode = { [id: number]: ValueEntry[] };
+export declare type ValuesByUnit = { [id: string]: ValueEntry[] };
 
 @Injectable()
 export class ValuesService {
-
   private readonly CACHEMAX: number = 120;
 
   private values_by_node: ValuesByNode = {};
-  private classes_by_node: ClassesByNode = {};
-  private values_by_id: ValuesByID = {};
-  private latest_value_by_id: {[id: string]: ValueEntry} = {};
+  private values_by_unit: ValuesByUnit = {};
 
   private readonly logger: Logger = new Logger(ValuesService.name);
 
   public constructor(
     private zwaveService: ZwaveService,
-    private influxService: InfluxDBService
+    private influxService: InfluxDBService,
   ) {
+    const driver = this.zwaveService.getDriver();
+    this.logger.debug("set up values service");
 
-    /*
-    let driver = this.zwaveService.driver;
-    driver.on("value added", this.updateValue.bind(this));
-    driver.on("value changed", this.updateValue.bind(this));
-    driver.on("value refreshed", this.updateValue.bind(this));
-    driver.on("value removed", this.onRemoved.bind(this));
-    */
+    driver.on("driver ready", () => {
+      driver.controller.nodes.forEach((node: ZWaveNode) => {
+        this.logger.debug(`add callbacks to node ${node.nodeId}`);
+        node.on("value added", this.onAdded.bind(this));
+        node.on("value updated", this.onUpdated.bind(this));
+        node.on("value removed", this.onRemoved.bind(this));
+      });
+    });
   }
 
-  private onRemoved(id: number, cls: number, value: Value): void {
-    this.logger.debug(`remove value ${this.genValueID(value)}`);
+  private onAdded(node: ZWaveNode, args: ZWaveNodeValueAddedArgs): void {
+    this.logger.debug(`value added on node ${node.nodeId} ` + args);
   }
 
-  private updateValue(id: number, cls: number, value: Value): void {
-    const valueid = this.genValueID(value);
+  private onUpdated(node: ZWaveNode, args: ZWaveNodeValueUpdatedArgs): void {
+    this.logger.debug(`nodeid: ${node.nodeId}`);
+    this.logger.debug(args);
+    const meta = node.getValueMetadata(args);
+    this.logger.debug(meta);
 
-    if (!(id in this.values_by_node)) {
-      this.values_by_node[id] = [];
-    }
-    this.values_by_node[id].push(valueid);
-
-    if (!(id in this.classes_by_node)) {
-      this.classes_by_node[id] = [];
-    }
-    if (!this.classes_by_node[id].includes(cls)) {
-      this.classes_by_node[id].push(cls);
-    }
-    if (!(valueid in this.values_by_id)) {
-      this.values_by_id[valueid] = [];
-    }
-    const latest: ValueEntry = {ts: new Date().getTime(), value: value};
-    this.values_by_id[valueid].push(latest);
-    this.latest_value_by_id[valueid] = latest;
-
-    const valueslst = this.values_by_id[valueid];
-    if (valueslst.length > this.CACHEMAX) {
-      const diff = valueslst.length - this.CACHEMAX;
-      this.values_by_id[valueid] = valueslst.splice(0, diff);
-    }
-
-    this.maybeStoreValue(id, cls, value);
-  }
-
-  private genValueID(v: Value): string {
-    return `${v.node_id}-${v.class_id}-${v.instance}-${v.index}`;
-  }
-
-  private maybeStoreValue(id: number, cls: number, value: Value): void {
-
-    if (cls === 0x32) {
-      this.storeMeterValue(id, cls, value);
-    }
-  }
-
-  private storeMeterValue(id: number, cls: number, value: Value): void {
-    if (cls !== 0x32) {
+    if (args.commandClass != 50) {
+      // meter
+      return;
+    } else if (meta.type != "number") {
       return;
     }
+
+    const meta_value = meta as ValueMetadataNumeric;
+    if (!meta_value.unit) {
+      return;
+    }
+
+    const entry: ValueEntry = {
+      nodeId: node.nodeId,
+      cls: args.commandClass,
+      key: !!args.propertyKey ? +args.propertyKey : -1,
+      unit: meta_value.unit,
+      label: !!meta_value.label ? meta_value.label : "unknown",
+      value: args.newValue as number,
+      ts: new Date().getTime(),
+    };
+
+    if (!(node.nodeId in this.values_by_node)) {
+      this.values_by_node[node.nodeId] = [];
+    }
+    if (!(entry.unit in this.values_by_unit)) {
+      this.values_by_unit[entry.unit] = [];
+    }
+    this.values_by_node[node.nodeId].push(entry);
+    this.values_by_unit[entry.unit].push(entry);
 
     const write = this.influxService.getWrite();
-    if (!write) {
-      return;
-    }
-    write.useDefaultTags({node: `node#${id}`});
-    const point = new Point(value.units);
+    write.useDefaultTags({ node: `node#${node.nodeId}` });
+    const point = new Point(entry.unit);
 
-    if (value.type === "decimal") {
-      point.floatField("value", value.value);
-    } else if (value.type === "int" || value.type === "short") {
-      point.intField("value", value.value);
-    }
-
-    write.writePoint(point)
+    point.floatField("value", entry.value);
+    write.writePoint(point);
     write.close();
+
+    const should_trim = (lst: ValueEntry[]): boolean => {
+      return lst.length > this.CACHEMAX;
+    };
+
+    const trim = (lst: ValueEntry[]): ValueEntry[] => {
+      const diff = lst.length - this.CACHEMAX;
+      return lst.splice(0, diff);
+    };
+
+    if (should_trim(this.values_by_node[node.nodeId])) {
+      this.values_by_node[node.nodeId] = trim(this.values_by_node[node.nodeId]);
+    }
+    if (should_trim(this.values_by_unit[entry.unit])) {
+      this.values_by_unit[entry.unit] = trim(this.values_by_unit[entry.unit]);
+    }
   }
 
-  public getLatestValuesByNode(id: number): ValueEntry[] {
-    const lst: ValueEntry[] = [];
-    if (!(id in this.values_by_node)) {
-      return [];
-    }
-    this.values_by_node[id].forEach((valueid: string) => {
-      if (valueid in this.latest_value_by_id) {
-        lst.push(this.latest_value_by_id[valueid]);
-      }
-    });
-    return lst;
+  private onRemoved(node: ZWaveNode, args: ZWaveNodeValueRemovedArgs): void {
+    this.logger.debug(`remove from node ${node.nodeId} value ${args.property}`);
   }
 }
