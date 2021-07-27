@@ -68,10 +68,7 @@ export class ValuesService {
   }
 
   private onUpdated(node: ZWaveNode, args: ZWaveNodeValueUpdatedArgs): void {
-    this.logger.debug(`nodeid: ${node.nodeId}`);
-    this.logger.debug(args);
     const meta = node.getValueMetadata(args);
-    this.logger.debug(meta);
 
     if (args.commandClass != 50) {
       // meter
@@ -94,6 +91,10 @@ export class ValuesService {
       value: args.newValue as number,
       ts: new Date().getTime(),
     };
+    this.logger.debug(
+      `node #${node.nodeId}, key: ${entry.key}, label: ${entry.label}, ` +
+        `value: ${entry.value}`,
+    );
 
     if (!(node.nodeId in this.values_by_node)) {
       this.values_by_node[node.nodeId] = [];
