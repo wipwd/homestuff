@@ -13,33 +13,54 @@
  * GNU Affero General Public License for more details.
  */
 import { Controller, Get, Post } from "@nestjs/common";
+import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { CtrlService, HealStatus, NetworkMesh } from "./ctrl.service";
 
+@ApiTags("controller")
 @Controller("ctrl")
 export class CtrlController {
   public constructor(private ctrlService: CtrlService) {}
 
   @Post("heal/start")
+  @ApiOkResponse({
+    description: "Start healing network",
+    type: Boolean,
+  })
   public healNetworkStart(): boolean {
     return this.ctrlService.healStart();
   }
 
   @Post("heal/stop")
+  @ApiOkResponse({
+    description: "Stop on-going network healing process",
+    type: Boolean,
+  })
   public healNetworkStop(): boolean {
     return this.ctrlService.healStop();
   }
 
   @Get("heal/status")
+  @ApiOkResponse({
+    description: "Get current network healing status",
+    type: HealStatus,
+  })
   public getHealStatus(): HealStatus {
     return this.ctrlService.getHealStatus();
   }
 
   @Get("heal/progress")
+  @ApiOkResponse({
+    description: "Get current network healing progress",
+    type: Number,
+  })
   public getHealProgress(): number {
     return this.ctrlService.getHealProgress();
   }
 
   @Get("mesh")
+  @ApiOkResponse({
+    description: "Get network mesh",
+  })
   public async getNetworkMesh(): Promise<NetworkMesh> {
     return await this.ctrlService.getNetworkMesh();
   }

@@ -21,11 +21,11 @@ import { HealNodeStatus } from "zwave-js";
 export declare type NetworkMesh = { [id: number]: ZWNode[] };
 
 export declare type HealStatusDict = { [id: number]: HealNodeStatus };
-export declare type HealStatus = {
+export class HealStatus {
   running: boolean;
   progress: number;
   nodes: HealStatusDict;
-};
+}
 
 @Injectable()
 export class CtrlService {
@@ -127,18 +127,23 @@ export class CtrlService {
     const driver = this.zwaveService.getDriver();
     const nodes = this.nodesService.getNodeIDs();
 
+    this.logger.debug(`nodes: ${nodes}`);
+
     const mesh: NetworkMesh = {};
-    nodes.forEach(async (id: number) => {
-      const neighbors = await driver.controller.getNodeNeighbors(id);
-      const neighbors_lst = [];
-      neighbors.forEach((neighborid) => {
-        if (!(neighborid in nodes)) {
-          return;
-        }
-        neighbors_lst.push(nodes[neighborid]);
-      });
-      mesh[id] = neighbors_lst;
-    });
+    await Promise.all(
+      nodes.map(async (id: number) => {
+        const neighbors = await driver.controller.getNodeNeighbors(id);
+        this.logger.debug(`node ${id} neighbors: ${neighbors}`);
+        const neighbors_lst = [];
+        neighbors.forEach((neighborid) => {
+          if (!this.nodesService.nodeExists(neighborid)) {
+            return;
+          }
+          neighbors_lst.push(this.nodesService.getNode(neighborid));
+        });
+        mesh[id] = neighbors_lst;
+      }),
+    );
     return mesh;
   }
 }
